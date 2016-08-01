@@ -12,6 +12,7 @@ from satnogsclient.observer.commsocket import Commsocket
 from satnogsclient.observer.udpsocket import Udpsocket
 from satnogsclient.upsat import hldlc
 from satnogsclient.upsat import packet_settings
+from socket import ntohl
 
 
 logger = logging.getLogger('satnogsclient')
@@ -558,37 +559,72 @@ def ecss_logic(ecss_dict):
         elif ecss_dict['ser_subtype'] == packet_settings.TM_MS_CONTENT:
 
             sid = ecss_dict['data'][0]
-            fname = cnv8_16(ecss_dict['data'][1:])
+            #fname = cnv8_16(ecss_dict['data'][1:])
 
-            report = "From store: " + packet_settings.upsat_store_ids[str(sid)] + " file " + str(fname)  # + " content " + ecss_dict['data'] + \
+            #report = "From store: " + packet_settings.upsat_store_ids[str(sid)] + " file " + str(fname)  # + " content " + ecss_dict['data'] + \
             # " " + ' '.join('{:02x}'.format(x) for x in ecss_dict['data']) + "\n"
 
             if sid == packet_settings.SU_LOG:
-
-                su_logs = 1  # (ecss_dict['size'] - 3) / packet_settings.SU_LOG_SIZE
+                if((ecss_dict['size'] - 1) % (packet_settings.SU_LOG_SIZE + 2)) != 0:
+                    logger.error('Wrong data size in muliple file downlink for SU LOG') 
+                    
+                su_logs = (ecss_dict['size'] - 1) / (packet_settings.SU_LOG_SIZE + 2)
 
                 # If su_logs > MAX_DOWNLINK_SU_LOGS:
                 # Error
 
                 report += " received " + str(su_logs) + " su logs "
                 for i in range(0, su_logs):
-                    qb50 = cnv8_32(ecss_dict['data'][(3 + (i * packet_settings.SU_LOG_SIZE)):])
+                    start_index = 3 + i * (packet_settings.SU_LOG_SIZE + 2)
+                    qb50 = cnv8_32(ecss_dict['data'][start_index:])
                     utc = qb50_to_utc(qb50)
                     report += "SU LOG, with QB50 " + str(qb50) + " UTC: " + str(utc)
 
-            elif sid == packet_settings.WOD_LOG:
+                    fname = bytearray16_ntohl(ecss_dict['data'][start_index - 2 : start_index])
+                    file = open(settings.FILE_STORE_DIR + str(fname),'w')
+                    file.write(ecss_dict['data'][start_index:start_index + packet_settings.SU_LOG_SIZE])
+                    file.close()
 
-                wod_logs = 1  # (ecss_dict['size'] - 3) / packet_settings.SU_LOG_SIZE
+            elif sid == packet_settings.WOD_LOG:
+                if((ecss_dict['size'] - 1) % (packet_settings.WOD_LOG_SIZE + 2)) != 0:
+                    logger.error('Wrong data size in muliple file downlink for WOD LOG')
+
+                wod_logs = (ecss_dict['size'] - 1) / (packet_settings.WOD_LOG_SIZE + 2)
 
                 # If su_logs > MAX_DOWNLINK_SU_LOGS:
                 # Error
 
                 report += " received " + str(wod_logs) + " wod logs "
                 for i in range(0, wod_logs):
-                    qb50 = cnv8_32(ecss_dict['data'][(3 + (i * packet_settings.WOD_LOG_SIZE)):])
+                    start_index = 3 + i * (packet_settings.WOD_LOG_SIZE + 2)
+                    qb50 = cnv8_32(ecss_dict['data'][start_index:])
                     utc = qb50_to_utc(qb50)
                     report += "WOD LOG, with QB50 " + str(qb50) + " UTC: " + str(utc)
 
+                    fname = bytearray16_ntohl(ecss_dict['data'][start_index - 2 : start_index])
+                    file = open(settings.FILE_STORE_DIR + str(fname),'w')
+                    file.write(ecss_dict['data'][start_index:start_index + packet_settings.WOD_LOG_SIZE])
+                    file.close()
+            elif sid == packet_settings.EXT_WOD_LOG:
+                if((ecss_dict['size'] - 1) % (packet_settings.EXT_WOD_LOG_SIZE + 2)) != 0:
+                    logger.error('Wrong data size in muliple file downlink for EXT WOD LOG')
+
+                ext_wod_logs = (ecss_dict['size'] - 3) / (packet_settings.EXT_WOD_LOG_SIZE + 2)
+
+                # If su_logs > MAX_DOWNLINK_SU_LOGS:
+                # Error
+
+                report += " received " + str(ext_wod_logs) + " ext wod logs "
+                for i in range(0, ext_wod_logs):
+                    start_index = 3 + i * (packet_settings.EXT_WOD_LOG_SIZE + 2)
+                    qb50 = cnv8_32(ecss_dict['data'][start_index:])
+                    utc = qb50_to_utc(qb50)
+                    report += "EXT WOD LOG, with QB50 " + str(qb50) + " UTC: " + str(utc)
+
+                    fname = bytearray16_ntohl(ecss_dict['data'][start_index - 2 : start_index])
+                    file = open(settings.FILE_STORE_DIR + str(fname),'w')
+                    file.write(ecss_dict['data'][start_index:start_index + packet_settings.EXT_WOD_LOG_SIZE])
+                    file.close()  
             elif sid <= packet_settings.SU_SCRIPT_7:
 
                 sum1 = 0
@@ -649,6 +685,10 @@ def cnv32_8(inc):
     ret[3] = (inc >> 24) & 0x000000FF
     return ret
 
+
+def bytearray16_ntohl(buf):
+    tmp = (buf[0] << 8) |buf[1]
+    return ntohl(tmp)
 
 def cnv16_8(inc):
 
