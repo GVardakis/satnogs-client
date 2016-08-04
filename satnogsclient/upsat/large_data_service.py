@@ -8,13 +8,21 @@ from satnogsclient import settings as client_settings
 from satnogsclient.observer.udpsocket import Udpsocket
 from satnogsclient.upsat import packet
 from time import sleep
+import time
 from _socket import htons
 
 logger = logging.getLogger('satnogsclient')
 
 large_data_id = 0
-socket = Udpsocket(('0.0.0.0', client_settings.LD_UPLINK_LISTEN_PORT))
+uplink_socket = Udpsocket(('0.0.0.0', client_settings.LD_UPLINK_LISTEN_PORT))
+downlink_socket = Udpsocket(('0.0.0.0', client_settings.LD_DOWNLINK_LISTEN_PORT))
 gnuradio_sock = Udpsocket([])  # Gnuradio's udp listen port
+
+
+#Start thread for large data downlink
+d = Process(target=downlink, args=())
+d.daemon = True
+d.start()
 
 
 def uplink(buf_in):
@@ -68,7 +76,7 @@ def uplink(buf_in):
             print ' retries = ', retries, 'got ack = ', got_ack
             try:
                 logger.info('Waiting for ack')
-                ack = socket.recv_timeout(client_settings.LD_UPLINK_TIMEOUT)
+                ack = uplink_socket.recv_timeout(client_settings.LD_UPLINK_TIMEOUT)
                 ecss_dict = cPickle.loads(ack[0])
                 if len(ecss_dict) == 0:
                     continue
@@ -101,3 +109,21 @@ def uplink(buf_in):
         else:
             logger.info('Aborted operation')
             return
+
+
+def downlink():
+    prev_id = -1
+    end_time = 0
+    receiving = False
+    while 1:
+        if receiving:
+            data = downlink_socket.recv_timeout(start_time - time.time())
+        else:
+            data = downlink_socket.recv()
+            end_time = time.time() + client_settings.LD_DOWNLINK_TIMEOUT
+            receiving = True
+        ecss_dict = cPickle.loads(ack[0])
+        if len(ecss_dict) == 0:
+            continue
+        
+        
