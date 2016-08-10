@@ -259,13 +259,13 @@ def request_packet(ld_id, ld_num, backend):
     packet_count_htons = htons(ld_num)
     packet_count_ms = (packet_count_htons & 0xFF00) >> 8
     packet_count_ls = packet_count_htons & 0x00FF
-    buf.insert(0, packet_count_ls)
     buf.insert(0, packet_count_ms)
+    buf.insert(0, packet_count_ls)
     buf.insert(0, ld_id)
     ecss = {'type': 1,
         'app_id': 4,
         'size': len(buf),
-        'ack': 1,  # Ack 1?????
+        'ack': 0,  # Ack 1?????
         'ser_type': packet_settings.TC_LARGE_DATA_SERVICE,
         'ser_subtype': packet_settings.TC_LD_REPEAT_DOWNLINK,
         'dest_id': 6,
