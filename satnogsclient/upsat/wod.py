@@ -5,6 +5,7 @@ EPOCH_DATE = datetime.strptime('20000101T000000Z', '%Y%m%dT%H%M%SZ')
 
 
 def wod_decode(hex_payload):
+    print 'Wod decoder'
     payload = ''
     for index, part in enumerate(hex_payload):
         payload += ''.join(format(ord(x), 'b').zfill(8) for x in part)

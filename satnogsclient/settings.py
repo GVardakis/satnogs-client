@@ -35,14 +35,14 @@ SATNOGS_VERIFY_SSL = bool(strtobool(environ.get('SATNOGS_VERIFY_SSL', 'True')))
 DEFAULT_SQLITE_PATH = path.join(SATNOGS_APP_PATH, 'jobs.sqlite')
 SATNOGS_SQLITE_URL = environ.get('SATNOGS_SQLITE_URL', 'sqlite:///' + DEFAULT_SQLITE_PATH)
 
-SATNOGS_NETWORK_API_URL = environ.get('SATNOGS_NETWORK_API_URL', 'https://network-dev.satnogs.org/api/')
+SATNOGS_NETWORK_API_URL = environ.get('SATNOGS_NETWORK_API_URL', 'https://network.satnogs.org/api/')
 SATNOGS_NETWORK_API_QUERY_INTERVAL = 1  # In minutes
 SATNOGS_NETWORK_API_POST_INTERVAL = 2  # In minutes
 GNURADIO_UDP_PORT = 16886
 GNURADIO_IP = '127.0.0.1'
 GNURADIO_SCRIPT_PATH = ['/usr/bin', '/usr/local/bin']
 GNURADIO_SCRIPT_FILENAME = 'satnogs_fm_demod.py'
-SATNOGS_RX_DEVICE = environ.get('SATNOGS_RX_DEVICE', 'rtlsdr')
+SATNOGS_RX_DEVICE = environ.get('SATNOGS_RX_DEVICE', 'usrpb200')
 CURRENT_PASS_TCP_PORT = 5005
 
 SATNOGS_ROT_IP = environ.get('SATNOGS_ROT_IP', '127.0.0.1')
@@ -67,7 +67,6 @@ RF_SW_CMD_OFF_CHAR_SEQ = environ.get('RF_SW_CMD_OFF_CHAR_SEQ', None)
 RF_SW_CMD_ON_INT = _cast_or_none(int, environ.get('RF_SW_CMD_ON_INT', None))
 RF_SW_CMD_ON_CHAR_SEQ = environ.get('RF_SW_CMD_ON_CHAR_SEQ', None)
 BACKEND_LISTENER_PORT = 5022
-BACKEND_FEEDER_PORT = 5023
 CLIENT_LISTENER_UDP_PORT = 5015
 TASK_FEEDER_TCP_PORT = 5011
 ECSS_FEEDER_UDP_PORT = 5031

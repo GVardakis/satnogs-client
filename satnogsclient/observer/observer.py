@@ -231,6 +231,7 @@ class Observer:
                                        time_to_stop=self.observation_end,
                                        proc=self._gnu_proc)
         logger.debug('TLE: {0}'.format(self.tle))
+        print 'Port '+ str(self._rot_port)
         logger.debug('Observation end: {0}'.format(self.observation_end))
         self.tracker_rot.trackobject(self.location, self.tle)
         self.tracker_rot.trackstart(settings.CURRENT_PASS_TCP_PORT, True)

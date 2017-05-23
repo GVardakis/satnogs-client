@@ -283,6 +283,7 @@ def status_listener():
                 ef = Process(
                     target=ecss_feeder, args=(settings.ECSS_FEEDER_UDP_PORT,))
                 start_wod_thread()
+                
                 ef.start()
                 os.environ['ECSS_FEEDER_PID'] = str(ef.pid)
                 logger.info('Started ecss_feeder process %d', ef.pid)
@@ -335,7 +336,7 @@ def start_wod_thread():
 
 
 def wod_listener():
-    sock = Udpsocket(('127.0.0.1', settings.WOD_UDP_PORT))
+    sock = Udpsocket(('0.0.0.0', settings.WOD_UDP_PORT))
     while 1:
         try:
             conn, addr = sock.recv()

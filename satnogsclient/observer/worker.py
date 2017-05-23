@@ -171,6 +171,7 @@ class WorkerTrack(Worker):
         self._altitude = alt
         msg = 'P {0} {1}\n'.format(az, alt)
         logger.debug('Rotctld msg: {0}'.format(msg))
+        
         sock.send(msg)
 
 
